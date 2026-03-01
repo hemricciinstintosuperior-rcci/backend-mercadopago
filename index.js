@@ -1,53 +1,65 @@
-// index.js - Backend Mercado Pago (CommonJS)
-const express = require("express");
-const cors = require("cors");
-const mercadopago = require("mercadopago");
+// index.js
+import express from "express";           // Para ES Modules (Node 22+)
+import mercadopago from "mercadopago";
 
-const app = express();
-app.use(express.json());
-app.use(cors());
-
-// Configura o Mercado Pago com o Access Token
-// **Substitua pelo seu access token do Mercado Pago**
+// === CONFIGURAÇÃO DO MERCADO PAGO ===
+// Substitua abaixo pelo seu token de produção
 mercadopago.configurations.setAccessToken("SEU_ACCESS_TOKEN_AQUI");
 
-// Rota para criar o pagamento
-app.post("/create-payment", async (req, res) => {
+const app = express();
+const PORT = process.env.PORT || 10000;
+
+// === MIDDLEWARES ===
+app.use(express.json());                // Para receber JSON do front-end
+app.use(express.urlencoded({ extended: true })); // Para receber dados de forms
+
+// === ROTAS ===
+
+// Rota teste
+app.get("/", (req, res) => {
+  res.send("Backend Mercado Pago rodando!");
+});
+
+// Criar pagamento via preference
+app.post("/create_preference", async (req, res) => {
   try {
+    const { title, quantity, price, back_url } = req.body;
+
     const preference = {
       items: [
         {
-          title: "Acesso ao Produto Digital",
-          quantity: 1,
-          currency_id: "BRL",
-          unit_price: 50.0, // Coloque o valor correto
+          title: title || "Produto",
+          quantity: quantity || 1,
+          unit_price: Number(price) || 10,
         },
       ],
       back_urls: {
-        success: "https://SEUUSUARIO.github.io/sucesso.html",
-        failure: "https://SEUUSUARIO.github.io/falha.html",
-        pending: "https://SEUUSUARIO.github.io/pendente.html",
+        success: back_url || "https://seusite.github.io/sucesso.html",
+        pending: back_url || "https://seusite.github.io/pendente.html",
+        failure: back_url || "https://seusite.github.io/falha.html",
       },
       auto_return: "approved",
-      notification_url: "https://SEU-BACKEND.onrender.com/webhook",
     };
 
     const response = await mercadopago.preferences.create(preference);
-    res.json(response); // Retorna JSON com init_point
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: error.message });
+    return res.json({ id: response.body.id });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro ao criar preference" });
   }
 });
 
-// Rota de webhook para notificações do Mercado Pago
-app.post("/webhook", (req, res) => {
-  console.log("Webhook recebido:", req.body);
-  res.sendStatus(200);
+// Rota para verificar status do pagamento (opcional)
+app.get("/status/:id", async (req, res) => {
+  try {
+    const payment = await mercadopago.payment.get(req.params.id);
+    res.json(payment.body);
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao consultar pagamento" });
+  }
 });
 
-// Porta do servidor (o Render define a variável de ambiente PORT)
-const PORT = process.env.PORT || 3000;
+// === START DO SERVIDOR ===
 app.listen(PORT, () => {
-  console.log("Servidor rodando na porta " + PORT);
+  console.log(`Servidor rodando na porta ${PORT}`);
 });
