@@ -1,16 +1,12 @@
 {
   "name": "backend-mercadopago",
   "version": "1.0.0",
-  "description": "Backend para gerar checkout do Mercado Pago",
-  "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "node index.js"
   },
-  "author": "Seu Nome",
-  "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
-    "cors": "^2.8.5",
     "mercadopago": "^2.5.1"
   }
 }
