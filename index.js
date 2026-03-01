@@ -1,65 +1,58 @@
 // index.js
-import express from "express";           // Para ES Modules (Node 22+)
+import express from "express";
 import mercadopago from "mercadopago";
-
-// === CONFIGURAÇÃO DO MERCADO PAGO ===
-// Substitua abaixo pelo seu token de produção
-mercadopago.configurations.setAccessToken("SEU_ACCESS_TOKEN_AQUI");
+import cors from "cors";
 
 const app = express();
-const PORT = process.env.PORT || 10000;
+app.use(cors());
+app.use(express.json());
 
-// === MIDDLEWARES ===
-app.use(express.json());                // Para receber JSON do front-end
-app.use(express.urlencoded({ extended: true })); // Para receber dados de forms
+// Configuração do Mercado Pago com variável de ambiente
+mercadopago.configurations.setAccessToken(process.env.MP_ACCESS_TOKEN);
 
-// === ROTAS ===
-
-// Rota teste
-app.get("/", (req, res) => {
-  res.send("Backend Mercado Pago rodando!");
-});
-
-// Criar pagamento via preference
+// Endpoint para criar preferência de pagamento
 app.post("/create_preference", async (req, res) => {
-  try {
-    const { title, quantity, price, back_url } = req.body;
+    try {
+        const { title, quantity, unit_price, payer_email } = req.body;
 
-    const preference = {
-      items: [
-        {
-          title: title || "Produto",
-          quantity: quantity || 1,
-          unit_price: Number(price) || 10,
-        },
-      ],
-      back_urls: {
-        success: back_url || "https://seusite.github.io/sucesso.html",
-        pending: back_url || "https://seusite.github.io/pendente.html",
-        failure: back_url || "https://seusite.github.io/falha.html",
-      },
-      auto_return: "approved",
-    };
+        const preference = {
+            items: [
+                {
+                    title,
+                    quantity,
+                    unit_price,
+                },
+            ],
+            payer: {
+                email: payer_email,
+            },
+            back_urls: {
+                success: "https://seu-site-no-github.io/?pago=true",
+                failure: "https://seu-site-no-github.io/?pago=false",
+                pending: "https://seu-site-no-github.io/?pago=pending",
+            },
+            auto_return: "approved",
+        };
 
-    const response = await mercadopago.preferences.create(preference);
-    return res.json({ id: response.body.id });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Erro ao criar preference" });
-  }
+        const response = await mercadopago.preferences.create(preference);
+        res.json({ id: response.body.id });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Erro ao criar preferência" });
+    }
 });
 
-// Rota para verificar status do pagamento (opcional)
+// Endpoint para testar status (opcional)
 app.get("/status/:id", async (req, res) => {
-  try {
-    const payment = await mercadopago.payment.get(req.params.id);
-    res.json(payment.body);
-  } catch (err) {
-    res.status(500).json({ error: "Erro ao consultar pagamento" });
-  }
+    try {
+        const payment = await mercadopago.payment.findById(req.params.id);
+        res.json(payment);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Erro ao buscar pagamento" });
+    }
 });
 
-// === START DO SERVIDOR ===
-app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
-});
+// Inicia o servidor
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
