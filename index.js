@@ -1,31 +1,48 @@
-==> Clonando de https://github.com/hemricciinstintosuperior-rcci/backend-mercadopago 
-==> Verificando o commit ed56973fe8e6c723d3129f014039b9cd8b4a772d no branch principal 
-==> Usando a versão 22.22.0 do Node.js (padrão) 
-==> Documentação sobre como especificar uma versão do Node.js: https://render.com/docs/node-version 
-Menu
-==> Executando o comando de compilação 'npm install'... 
-Adicionamos 76 pacotes e auditamos 77 pacotes em 5 segundos.
-17 projetos estão buscando financiamento.
-  Execute `npm fund` para obter detalhes.
-Nenhuma vulnerabilidade encontrada.
-==> Enviando build... 
-==> Enviado em 3,3s. A compressão levou 1,7s 
-==> Construa com sucesso 🎉 
-==> Implantando...
-==> Definindo WEB_CONCURRENCY=1 por padrão, com base nas CPUs disponíveis na instância.
-==> Executando 'npm start' 
-==> Nenhuma porta aberta detectada, continuando a varredura...
-==> Documentação sobre como especificar uma porta: https://render.com/docs/web-services#port-binding
-> backend-mercadopago@1.0.0 iniciar
-> node index.js
-file:///opt/render/project/src/index.js:10
-mercadopago.configure({
-            ^
-TypeError: mercadopago.configure não é uma função
-    em file:///opt/render/project/src/index.js:10:13
-    em ModuleJob.run (node:internal/modules/esm/module_job:343:25)
-    em async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
-    em async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
-Node.js v22.22.0
-==> Saída com status 1
-==> Métodos comuns para solucionar problemas de implantação: https://render.com/docs/troubleshooting-deploys
+const express = require("express");
+const cors = require("cors");
+const mercadopago = require("mercadopago");
+
+const app = express();
+app.use(express.json());
+app.use(cors());
+
+// Configura o Mercado Pago com seu token
+mercadopago.configurations.setAccessToken(process.env.ACCESS_TOKEN);
+
+app.post("/create-payment", async (req, res) => {
+  try {
+    let preference = {
+      items: [
+        {
+          title: "Acesso ao Produto Digital",
+          quantity: 1,
+          currency_id: "BRL",
+          unit_price: 50.0,
+        },
+      ],
+      back_urls: {
+        success: "https://SEUUSUARIO.github.io/sucesso.html",
+        failure: "https://SEUUSUARIO.github.io/falha.html",
+        pending: "https://SEUUSUARIO.github.io/pendente.html",
+      },
+      auto_return: "approved",
+      notification_url: "https://SEU-BACKEND.onrender.com/webhook",
+    };
+
+    const response = await mercadopago.preferences.create(preference);
+    res.json(response);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post("/webhook", (req, res) => {
+  console.log("Webhook recebido:", req.body);
+  res.sendStatus(200);
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log("Servidor rodando na porta " + PORT);
+});
