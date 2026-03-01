@@ -1,58 +1,31 @@
-// index.js
-import express from "express";
-import mercadopago from "mercadopago";
-import cors from "cors";
-
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-// Configuração do Mercado Pago com variável de ambiente
+==> Baixando cache... 
+Menu
+==> Clonando de https://github.com/hemricciinstintosuperior-rcci/backend-mercadopago 
+==> Verificando o commit 4d9375d61fff2fb5287e9164683f8e8fbda6807b no branch principal 
+==> Download concluído em 3 segundos (58 MB). Extração concluída em 2 segundos. 
+==> Usando a versão 22.22.0 do Node.js (padrão) 
+==> Documentação sobre como especificar uma versão do Node.js: https://render.com/docs/node-version 
+==> Executando o comando de compilação 'npm install'... 
+Atualizado, 77 pacotes auditados em 759ms
+Dezesseis projetos estão buscando financiamento.
+  Execute `npm fund` para obter detalhes.
+Nenhuma vulnerabilidade encontrada.
+==> Enviando build... 
+==> Enviado em 3,8s. A compressão levou 1,5s. 
+==> Construa com sucesso 🎉 
+==> Implantando...
+==> Definindo WEB_CONCURRENCY=1 por padrão, com base nas CPUs disponíveis na instância.
+==> Executando 'npm start' 
+> backend-mercadopago@1.0.0 iniciar
+> node index.js
+file:///opt/render/project/src/index.js:11
 mercadopago.configurations.setAccessToken(process.env.MP_ACCESS_TOKEN);
-
-// Endpoint para criar preferência de pagamento
-app.post("/create_preference", async (req, res) => {
-    try {
-        const { title, quantity, unit_price, payer_email } = req.body;
-
-        const preference = {
-            items: [
-                {
-                    title,
-                    quantity,
-                    unit_price,
-                },
-            ],
-            payer: {
-                email: payer_email,
-            },
-            back_urls: {
-                success: "https://seu-site-no-github.io/?pago=true",
-                failure: "https://seu-site-no-github.io/?pago=false",
-                pending: "https://seu-site-no-github.io/?pago=pending",
-            },
-            auto_return: "approved",
-        };
-
-        const response = await mercadopago.preferences.create(preference);
-        res.json({ id: response.body.id });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Erro ao criar preferência" });
-    }
-});
-
-// Endpoint para testar status (opcional)
-app.get("/status/:id", async (req, res) => {
-    try {
-        const payment = await mercadopago.payment.findById(req.params.id);
-        res.json(payment);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Erro ao buscar pagamento" });
-    }
-});
-
-// Inicia o servidor
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+                           ^
+TypeError: Não é possível ler as propriedades de undefined (leitura de 'setAccessToken')
+    em file:///opt/render/project/src/index.js:11:28
+    em ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    em async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    em async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+Node.js v22.22.0
+==> Saída com status 1
+==> Métodos comuns para solucionar problemas de implantação: https://render.com/docs/troubleshooting-deploys
