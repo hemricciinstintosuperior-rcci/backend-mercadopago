@@ -31,11 +31,12 @@ app.post('/create_preference', async (req, res) => {
           }
         ],
         // CONFIGURAÇÃO DE RETORNO: Aqui é onde a mágica acontece
-        back_urls: {
-          success: `https://hemricciinstintosuperior-rcci.github.io/backend-mercadopago/index.html?pago=${id_produto}`,
-          failure: `https://hemricciinstintosuperior-rcci.github.io/backend-mercadopago/index.html?erro=1`,
-          pending: `https://hemricciinstintosuperior-rcci.github.io/backend-mercadopago/index.html?processando=1`
-        },
+back_urls: {
+  // Este link serve para os 4 aplicativos ao mesmo tempo!
+  success: `https://hemricciinstintosuperior-rcci.github.io/Trabalho_venda_Numerologia/index.html?pago=${id_produto}`,
+  failure: `https://hemricciinstintosuperior-rcci.github.io/Trabalho_venda_Numerologia/index.html?erro=1`,
+  pending: `https://hemricciinstintosuperior-rcci.github.io/Trabalho_venda_Numerologia/index.html?processando=1`
+},
         auto_return: "approved",
       }
     });
