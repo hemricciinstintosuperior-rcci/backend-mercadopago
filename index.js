@@ -32,7 +32,9 @@ app.post('/create_preference', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
+app.get('/', (req, res) => {
+  res.send('Servidor do Mercado Pago está online e operando! 🚀');
+});
 // 4. Porta que o Render EXIGE
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, '0.0.0.0', () => {
